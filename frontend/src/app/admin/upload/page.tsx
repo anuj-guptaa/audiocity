@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Upload, BookOpen, User, Music, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
 import axios from "axios"
+import Navbar from '../../components/Navbar';
 
 export default function UploadAudiobookPage() {
   const [title, setTitle] = useState("")
@@ -79,36 +80,7 @@ export default function UploadAudiobookPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-10 pb-4 border-b border-gray-300">
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="text-lg text-gray-900 hover:text-gray-900 font-medium">
-            <h1 className="text-4xl font-extrabold text-gray-900">📚 AudioCity</h1>
-          </Link>
-          <nav>
-            <ul className="flex space-x-6">
-              <li>
-                <Link
-                  href="/"
-                  className="text-lg text-gray-900 hover:text-gray-900 font-medium flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Home
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-gray-900">Admin Dashboard</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm font-semibold text-red-500 hover:text-red-700"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto max-w-4xl">

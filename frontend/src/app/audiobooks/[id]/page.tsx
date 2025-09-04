@@ -4,11 +4,20 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import Navbar from '../../components/Navbar';
+
+// Mock data for user roles
+const mockUser = {
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  role: 'admin', // can be 'admin' or 'regular'
+};
 
 interface Audiobook {
   id: string;
   title: string;
   author: string;
+  price: string;
   description: string;
   cover_image: string;
   tags: string;
@@ -18,12 +27,21 @@ export default function AudiobookPage() {
   const { id } = useParams();
   const router = useRouter();
   const [book, setBook] = useState<Audiobook | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(mockUser);
 
   useEffect(() => {
-    const fetchBook = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      router.replace('/login');
+      return;
+    }
 
+    setIsLoggedIn(true);
+    setIsCheckingAuth(false);
+
+    const fetchBook = async () => {
       try {
         const response = await fetch(`http://localhost:8000/api/v1/audiobooks/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -39,16 +57,65 @@ export default function AudiobookPage() {
     };
 
     fetchBook();
-  }, [id]);
+  }, [id, router]);
 
-  if (!book) return <p>Loading...</p>;
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    setIsLoggedIn(false);
+    router.replace('/login');
+  };
+
+  const renderAuthButtons = () => {
+    if (isLoggedIn) {
+      return (
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-700">Welcome, {user.name}!</span>
+          <div className="flex items-center space-x-4 ml-auto">
+            {/* {user.role === 'admin' && (
+              <Link
+                href="/admin"
+                className="text-sm font-semibold text-gray-700 hover:text-gray-900"
+              >
+                Admin Dashboard
+              </Link>
+            )} */}
+            <button
+              onClick={handleLogout}
+              className="text-sm font-semibold text-red-500 hover:text-red-700"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center space-x-4">
+        <Link
+          href="/login"
+          className="text-sm font-semibold text-blue-500 hover:text-blue-700"
+        >
+          Login
+        </Link>
+        <Link
+          href="/register"
+          className="text-sm font-semibold text-blue-500 hover:text-blue-700"
+        >
+          Sign Up
+        </Link>
+      </div>
+    );
+  };
+
+  if (isCheckingAuth || !book) return <p>Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <button onClick={() => router.back()} className="text-blue-500 hover:text-blue-700 mb-6">
-        ← Back
-      </button>
+      <Navbar />
 
+      {/* Audiobook Card */}
       <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center text-center">
         <Image
           src={book.cover_image}
@@ -69,7 +136,7 @@ export default function AudiobookPage() {
             </span>
           ))}
         </div>
-        <p className="text-2xl font-bold text-gray-800 mb-4">$9.99</p>
+        <p className="text-2xl font-bold text-gray-800 mb-4">${book.price}</p>
         <Link
           href="/checkout"
           className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

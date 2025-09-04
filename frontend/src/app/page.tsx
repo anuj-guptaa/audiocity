@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Navbar from './components/Navbar';
 
 // Mock data for user roles
 const mockUser = {
   name: 'John Doe',
   email: 'john.doe@example.com',
-  role: 'admin', // can be 'admin' or 'regular'
+  role: 'admin', // can be 'admin' or 'regul<Navbar />ar'
 };
 
 interface Audiobook {
@@ -78,35 +79,35 @@ export default function HomePage() {
     router.replace('/login'); // redirect after logout
   };
 
-const handleDelete = async (bookId: string) => {
-  if (!confirm('Are you sure you want to delete this audiobook?')) return;
+  const handleDelete = async (bookId: string) => {
+    if (!confirm('Are you sure you want to delete this audiobook?')) return;
 
-  const token = localStorage.getItem('access_token');
-  if (!token) {
-    alert('You are not authorized.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`http://localhost:8000/api/v1/audiobooks/${bookId}/`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete audiobook: ${response.statusText}`);
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert('You are not authorized.');
+      return;
     }
 
-    // Remove from local state after successful deletion
-    setAudiobooks((prev) => prev.filter((book) => book.id !== bookId));
-    alert('Audiobook deleted successfully!');
-  } catch (error) {
-    console.error(error);
-    alert('Error deleting audiobook.');
-  }
-};
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/audiobooks/${bookId}/`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete audiobook: ${response.statusText}`);
+      }
+
+      // Remove from local state after successful deletion
+      setAudiobooks((prev) => prev.filter((book) => book.id !== bookId));
+      alert('Audiobook deleted successfully!');
+    } catch (error) {
+      console.error(error);
+      alert('Error deleting audiobook.');
+    }
+  };
 
   const renderAuthButtons = () => {
     if (isLoggedIn) {
@@ -114,14 +115,14 @@ const handleDelete = async (bookId: string) => {
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-700">Welcome, {user.name}!</span>
           <div className="flex items-center space-x-4 ml-auto">
-            {user.role === 'admin' && (
+            {/* {user.role === 'admin' && (
               <Link
                 href="/admin"
                 className="text-sm font-semibold text-gray-700 hover:text-gray-900"
               >
                 Admin Dashboard
               </Link>
-            )}
+            )} */}
             <button
               onClick={handleLogout}
               className="text-sm font-semibold text-red-500 hover:text-red-700"
@@ -157,83 +158,63 @@ const handleDelete = async (bookId: string) => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-10 pb-4 border-b border-gray-300">
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="text-lg text-gray-600 hover:text-gray-900 font-medium">
-            <h1 className="text-4xl font-extrabold text-gray-800">📚 AudioCity</h1>
-          </Link>
-          <nav>
-            <ul className="flex space-x-6">
-              {user.role === 'admin' && (
-                <li>
-                  <Link href="/admin/upload" className="text-lg text-gray-600 hover:text-gray-900 font-medium">
-                    Admin
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </nav>
-        </div>
-        {renderAuthButtons()}
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto">
         <h2 className="text-3xl font-bold mb-6 text-gray-800">Popular Audiobooks</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-{audiobooks.map((book) => (
-  <div
-    key={book.id}
-    onClick={(e) => {
-      // Prevent click if Add to Cart or Delete buttons are clicked
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON') return;
-      router.push(`/audiobooks/${book.id}`);
-    }}
-    className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-shadow"
-  >
-    <Image
-      src={book.cover_image}
-      alt={`Cover of ${book.title}`}
-      width={150}
-      height={150}
-      className="rounded-md mb-4"
-    />
-    <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{book.title}</h3>
-    <p className="text-sm text-gray-600 mt-1">by {book.author}</p>
-    <p className="text-lg font-bold text-gray-800 mt-2">${book.price}</p>
-    <div className="flex flex-wrap justify-center gap-2 mt-2">
-      {book.tags.split(',').map((tag) => (
-        <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-          {tag.trim()}
-        </span>
-      ))}
-    </div>
-    <div className="flex gap-2 mt-4">
-      <button
-        onClick={() => addToCart(book)}
-        disabled={cart.some((item) => item.id === book.id)}
-        className={`px-6 py-2 rounded-lg transition-colors ${
-          cart.some((item) => item.id === book.id)
-            ? 'bg-gray-400 text-white cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
-        }`}
-      >
-        {cart.some((item) => item.id === book.id) ? 'In Cart' : 'Add to Cart'}
-      </button>
+          {audiobooks.map((book) => (
+            <div
+              key={book.id}
+              onClick={(e) => {
+                // Prevent click if Add to Cart or Delete buttons are clicked
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'BUTTON') return;
+                router.push(`/audiobooks/${book.id}`);
+              }}
+              className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-shadow"
+            >
+              <Image
+                src={book.cover_image}
+                alt={`Cover of ${book.title}`}
+                width={150}
+                height={150}
+                className="rounded-md mb-4"
+              />
+              <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{book.title}</h3>
+              <p className="text-sm text-gray-600 mt-1">by {book.author}</p>
+              <p className="text-lg font-bold text-gray-800 mt-2">${book.price}</p>
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
+                {book.tags.split(',').map((tag) => (
+                  <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                    {tag.trim()}
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => addToCart(book)}
+                  disabled={cart.some((item) => item.id === book.id)}
+                  className={`px-6 py-2 rounded-lg transition-colors ${cart.some((item) => item.id === book.id)
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                >
+                  {cart.some((item) => item.id === book.id) ? 'In Cart' : 'Add to Cart'}
+                </button>
 
-      {user.role === 'admin' && (
-        <button
-          onClick={() => handleDelete(book.id)}
-          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-        >
-          Delete
-        </button>
-      )}
-    </div>
-  </div>
-))}
+                {user.role === 'admin' && (
+                  <button
+                    onClick={() => handleDelete(book.id)}
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </main>
 
@@ -258,9 +239,9 @@ const handleDelete = async (bookId: string) => {
               ))}
             </ul>
             <div className="mt-6 pt-4 border-t border-gray-200">
-<p className="text-lg font-bold text-gray-900">
-  Total: ${cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2)}
-</p>
+              <p className="text-lg font-bold text-gray-900">
+                Total: ${cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2)}
+              </p>
               <Link
                 href="/checkout"
                 className="mt-4 block w-full text-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
