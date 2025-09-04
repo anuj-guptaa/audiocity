@@ -137,10 +137,16 @@ class AudiobookTranscriptionView(APIView):
     def post(self, request, audiobook_id):
         try:
             audiobook = Audiobook.objects.get(id=audiobook_id)
+            print(f"Found audiobook: {audiobook.title}")
+            print(audiobook)
         except Audiobook.DoesNotExist:
             return Response({"error": "Audiobook not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        print("Starting for loop")
+        print(audiobook.audio_files.all())
         for file_obj in audiobook.audio_files.all():
+            print(file_obj)
+            print(f"Transcribing file")
             transcribe_audio_file.delay(str(file_obj.id))  # Run async with Celery
 
         return Response({"message": "Transcription tasks queued."}, status=status.HTTP_202_ACCEPTED)
