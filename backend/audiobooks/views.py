@@ -60,6 +60,7 @@ class AudiobookCheckoutView(APIView):
                         "title": audiobook.title,
                         "audio_url": audio_url,
                         "transcription_url": transcription_url,
+                        'cover_image': audiobook.cover_image.url if audiobook.cover_image else None
                     })
                 except ValueError as e:
                     # Log the error and continue, but don't fail the entire request

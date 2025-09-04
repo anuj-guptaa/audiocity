@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const [total, setTotal] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
-  const [downloadLinks, setDownloadLinks] = useState<{ id: string; url: string; title: string; type: string }[]>([]);
+  const [downloadLinks, setDownloadLinks] = useState<{ id: string; url: string; title: string; type: string; cover_image: string }[]>([]);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -59,8 +59,8 @@ export default function CheckoutPage() {
 
       const data = await response.json();
       const generatedLinks = data.download_links.flatMap((link: any) => [
-        { id: link.id, title: `${link.title} (Audio)`, url: link.audio_url, type: 'audio' },
-        { id: link.id, title: `${link.title} (Transcript)`, url: link.transcription_url, type: 'transcription' },
+        { id: link.id, title: `${link.title} (Audio)`, url: link.audio_url, type: 'audio', cover_image: link.cover_image },
+        { id: link.id, title: `${link.title} (Transcript)`, url: link.transcription_url, type: 'transcription', cover_image: link.cover_image },
       ]);
       
       setDownloadLinks(generatedLinks);
@@ -78,14 +78,26 @@ export default function CheckoutPage() {
     }
   };
 
-  const downloadFile = (url: string, filename: string) => {
+const downloadFile = async (url: string, filename: string) => {
+  try {
+    const response = await fetch(url, { method: 'GET' });
+    if (!response.ok) throw new Error('Failed to fetch file');
+
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
     const a = document.createElement('a');
-    a.href = url;
+    a.href = blobUrl;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-  };
+    a.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Download error:', error);
+    alert('Failed to download file.');
+  }
+};
 
   if (isOrderConfirmed) {
     return (
@@ -98,17 +110,26 @@ export default function CheckoutPage() {
             Thank you for your purchase. Your download links are ready.
           </p>
           <div className="space-y-4">
-            {downloadLinks.map((item) => (
-              <div key={`${item.id}-${item.type}`} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <span className="text-lg font-medium text-gray-800">{item.title}</span>
-                <button
-                  onClick={() => downloadFile(item.url, `${item.title.replace(/\s+/g, '_')}.zip`)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Download
-                </button>
-              </div>
-            ))}
+{downloadLinks.map((item) => (
+  <div key={`${item.id}-${item.type}`} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+    <div className="flex items-center space-x-4">
+      <Image
+        src={item.cover_image}
+        alt={`Cover of ${item.title}`}
+        width={50}
+        height={50}
+        className="rounded-md shadow-sm"
+      />
+      <span className="text-lg font-medium text-gray-800">{item.title}</span>
+    </div>
+    <button
+      onClick={() => downloadFile(item.url, `${item.title.replace(/\s+/g, '_')}.mp3`)}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+    >
+      Download
+    </button>
+  </div>
+))}
           </div>
           <Link href="/" className="mt-8 block text-blue-600 hover:underline">
             ← Back to Home
