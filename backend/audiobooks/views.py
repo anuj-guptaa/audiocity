@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
 
-from .models import Audiobook
+from .models import Audiobook, AudiobookFile
 from .serializers import AudiobookSerializer
 import os
 
@@ -18,9 +18,38 @@ AZURE_CONTAINER_NAME = os.environ.get("AZURE_CONTAINER")
 class AudiobookViewSet(viewsets.ModelViewSet):
     queryset = Audiobook.objects.all().order_by("-created_at")
     serializer_class = AudiobookSerializer
-    parser_classes = [MultiPartParser, FormParser]  # for file uploads
+    parser_classes = [MultiPartParser, FormParser]
 
+    def create(self, request, *args, **kwargs):
+        title = request.data.get("title")
+        author = request.data.get("author")
+        description = request.data.get("description", "")
+        tags = request.data.get("tags", "")
+        price = request.data.get("price")
+        cover_image = request.data.get("cover_image")
 
+        if not all([title, author, price, cover_image]):
+            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+
+        audiobook = Audiobook.objects.create(
+            title=title,
+            author=author,
+            description=description,
+            tags=tags,
+            price=price,
+            cover_image=cover_image,
+        )
+
+        audio_files = request.FILES.getlist("audio_files")
+        audio_orders = request.data.getlist("audio_orders")
+
+        for i, file in enumerate(audio_files):
+            order = int(audio_orders[i]) if i < len(audio_orders) else i
+            AudiobookFile.objects.create(audiobook=audiobook, file=file, order=order)
+
+        serializer = self.get_serializer(audiobook)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 class AudiobookCheckoutView(APIView):
     """
     Handles the checkout process for audiobooks.
