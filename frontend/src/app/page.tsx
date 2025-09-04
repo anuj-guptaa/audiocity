@@ -182,43 +182,58 @@ const handleDelete = async (bookId: string) => {
       <main className="container mx-auto">
         <h2 className="text-3xl font-bold mb-6 text-gray-800">Popular Audiobooks</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {audiobooks.map((book) => (
-            <div key={book.id} className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center">
-              <Image src={book.cover_image} alt={`Cover of ${book.title}`} width={150} height={150} className="rounded-md mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{book.title}</h3>
-              <p className="text-sm text-gray-600 mt-1">by {book.author}</p>
-              <p className="text-lg font-bold text-gray-800 mt-2">${book.price}</p>
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {book.tags.split(',').map((tag) => (
-                  <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                    {tag.trim()}
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => addToCart(book)}
-                  disabled={cart.some((item) => item.id === book.id)}
-                  className={`px-6 py-2 rounded-lg transition-colors ${
-                    cart.some((item) => item.id === book.id)
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {cart.some((item) => item.id === book.id) ? 'In Cart' : 'Add to Cart'}
-                </button>
+{audiobooks.map((book) => (
+  <div
+    key={book.id}
+    onClick={(e) => {
+      // Prevent click if Add to Cart or Delete buttons are clicked
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON') return;
+      router.push(`/audiobooks/${book.id}`);
+    }}
+    className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-shadow"
+  >
+    <Image
+      src={book.cover_image}
+      alt={`Cover of ${book.title}`}
+      width={150}
+      height={150}
+      className="rounded-md mb-4"
+    />
+    <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{book.title}</h3>
+    <p className="text-sm text-gray-600 mt-1">by {book.author}</p>
+    <p className="text-lg font-bold text-gray-800 mt-2">${book.price}</p>
+    <div className="flex flex-wrap justify-center gap-2 mt-2">
+      {book.tags.split(',').map((tag) => (
+        <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+          {tag.trim()}
+        </span>
+      ))}
+    </div>
+    <div className="flex gap-2 mt-4">
+      <button
+        onClick={() => addToCart(book)}
+        disabled={cart.some((item) => item.id === book.id)}
+        className={`px-6 py-2 rounded-lg transition-colors ${
+          cart.some((item) => item.id === book.id)
+            ? 'bg-gray-400 text-white cursor-not-allowed'
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
+      >
+        {cart.some((item) => item.id === book.id) ? 'In Cart' : 'Add to Cart'}
+      </button>
 
-                {user.role === 'admin' && (
-                  <button
-                    onClick={() => handleDelete(book.id)}
-                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+      {user.role === 'admin' && (
+        <button
+          onClick={() => handleDelete(book.id)}
+          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+        >
+          Delete
+        </button>
+      )}
+    </div>
+  </div>
+))}
         </div>
       </main>
 
@@ -234,7 +249,7 @@ const handleDelete = async (bookId: string) => {
                 <li key={item.id} className="flex items-center justify-between border-b pb-2 last:border-b-0">
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900 line-clamp-1">{item.title}</p>
-                    <p className="text-sm text-gray-600">$9.99</p>
+                    <p className="text-sm text-gray-600">${item.price}</p>
                   </div>
                   <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700 ml-4">
                     Remove
@@ -243,9 +258,9 @@ const handleDelete = async (bookId: string) => {
               ))}
             </ul>
             <div className="mt-6 pt-4 border-t border-gray-200">
-              <p className="text-lg font-bold text-gray-900">
-                Total: ${cart.reduce((total) => total + 9.99, 0).toFixed(2)}
-              </p>
+<p className="text-lg font-bold text-gray-900">
+  Total: ${cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2)}
+</p>
               <Link
                 href="/checkout"
                 className="mt-4 block w-full text-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
