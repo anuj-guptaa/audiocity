@@ -143,6 +143,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+print("DB SETTINGS")
+print(os.environ.get("POSTGRES_DB"))
+print(os.environ.get("POSTGRES_USER"))
+print(os.environ.get("POSTGRES_PASSWORD"))
+print(os.environ.get("POSTGRES_HOST"))
 
 # Database
 DATABASES = {
