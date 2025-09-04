@@ -1,0 +1,12 @@
+Django
+djangorestframework
+django-cors-headers
+celery
+redis
+psycopg2-binary
+django-storages[azure]
+django-storages[google]
+# Add dj-rest-auth and django-allauth for auth
+dj-rest-auth[with_social]
+djangorestframework-simplejwt
+django-allauth
