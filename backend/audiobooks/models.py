@@ -9,7 +9,7 @@ def transcription_upload_path(instance, filename):
     return f"{instance.id}/transcription.json"
 
 def audio_upload_path(instance, filename):
-    return f"{instance.id}/audiobook.mp3"
+    return f"{instance.id}/audio/audiobook.mp3"
 
 class Audiobook(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
