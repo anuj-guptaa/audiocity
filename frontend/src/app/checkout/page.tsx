@@ -5,6 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 
+interface DownloadLink {
+  id: string;
+  title: string;
+  url: string;
+  type: 'audio' | 'transcription';
+  cover_image: string;
+  order?: number;
+}
+
 interface Audiobook {
   id: string;
   title: string;
@@ -12,8 +21,6 @@ interface Audiobook {
   price: string;
   cover_image: string;
   tags: string;
-  file_url: string;
-  transcription_file_url: string; // Add a property for the transcription file URL
 }
 
 export default function CheckoutPage() {
@@ -21,7 +28,7 @@ export default function CheckoutPage() {
   const [total, setTotal] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
-  const [downloadLinks, setDownloadLinks] = useState<{ id: string; url: string; title: string; type: string; cover_image: string }[]>([]);
+  const [downloadLinks, setDownloadLinks] = useState<DownloadLink[]>([]);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -43,33 +50,69 @@ export default function CheckoutPage() {
     }
 
     try {
-      // API call to your backend to process the order and get download links
       const response = await fetch('http://localhost:8000/api/v1/audiobooks/checkout/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ items: cart.map(item => item.id) }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Checkout failed: ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`Checkout failed: ${response.statusText}`);
       const data = await response.json();
-      const generatedLinks = data.download_links.flatMap((link: any) => [
-        { id: link.id, title: `${link.title} (Audio)`, url: link.audio_url, type: 'audio', cover_image: link.cover_image },
-        { id: link.id, title: `${link.title} (Transcript)`, url: link.transcription_url, type: 'transcription', cover_image: link.cover_image },
-      ]);
-      
+
+      // Flatten download links per audiobook
+      const generatedLinks: DownloadLink[] = [];
+      data.download_links.forEach((a: any) => {
+        // Multiple audio files
+        if (Array.isArray(a.audio_urls)) {
+          a.audio_urls.forEach((file: any, idx: number) => {
+            generatedLinks.push({
+              id: a.id,
+              title: `${a.title} (Audio ${file.order || idx + 1})`,
+              url: file.url,
+              type: 'audio',
+              cover_image: a.cover_image,
+              order: file.order || idx + 1,
+            });
+          });
+        } else {
+          generatedLinks.push({
+            id: a.id,
+            title: `${a.title} (Audio)`,
+            url: a.audio_url,
+            type: 'audio',
+            cover_image: a.cover_image,
+          });
+        }
+
+        if (Array.isArray(a.transcription_urls)) {
+          a.transcription_urls.forEach((file: any) => {
+            generatedLinks.push({
+              id: a.id,
+              title: `${a.title} (Transcript ${file.order || ''})`,
+              url: file.url,
+              type: 'transcription',
+              cover_image: a.cover_image,
+              order: file.order,
+            });
+          });
+        } else if (a.transcription_url) {
+          generatedLinks.push({
+            id: a.id,
+            title: `${a.title} (Transcript)`,
+            url: a.transcription_url,
+            type: 'transcription',
+            cover_image: a.cover_image,
+          });
+        }
+      });
+
       setDownloadLinks(generatedLinks);
       setIsOrderConfirmed(true);
-      
-      // Clear the cart only after a successful transaction
       localStorage.removeItem('cart');
       setCart([]);
-
     } catch (error) {
       console.error('Checkout error:', error);
       alert('An error occurred during checkout. Please try again.');
@@ -78,58 +121,52 @@ export default function CheckoutPage() {
     }
   };
 
-const downloadFile = async (url: string, filename: string) => {
-  try {
-    const response = await fetch(url, { method: 'GET' });
-    if (!response.ok) throw new Error('Failed to fetch file');
-
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    console.error('Download error:', error);
-    alert('Failed to download file.');
-  }
-};
+  const downloadFile = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download file.');
+    }
+  };
 
   if (isOrderConfirmed) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center justify-center text-center">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full">
-          <h2 className="text-3xl font-bold text-green-600 mb-4">
-            ✅ Order Confirmed!
-          </h2>
-          <p className="text-gray-700 mb-6">
-            Thank you for your purchase. Your download links are ready.
-          </p>
+          <h2 className="text-3xl font-bold text-green-600 mb-4">✅ Order Confirmed!</h2>
+          <p className="text-gray-700 mb-6">Thank you for your purchase. Your download links are ready.</p>
           <div className="space-y-4">
-{downloadLinks.map((item) => (
-  <div key={`${item.id}-${item.type}`} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-    <div className="flex items-center space-x-4">
-      <Image
-        src={item.cover_image}
-        alt={`Cover of ${item.title}`}
-        width={50}
-        height={50}
-        className="rounded-md shadow-sm"
-      />
-      <span className="text-lg font-medium text-gray-800">{item.title}</span>
-    </div>
-    <button
-      onClick={() => downloadFile(item.url, `${item.title.replace(/\s+/g, '_')}.mp3`)}
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-    >
-      Download
-    </button>
-  </div>
-))}
+            {downloadLinks.map((item) => (
+              <div key={`${item.id}-${item.type}-${item.order}`} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <Image
+                    src={item.cover_image}
+                    alt={`Cover of ${item.title}`}
+                    width={50}
+                    height={50}
+                    className="rounded-md shadow-sm"
+                  />
+                  <span className="text-lg font-medium text-gray-800">{item.title}</span>
+                </div>
+                <button
+                  onClick={() => downloadFile(item.url, `${item.title.replace(/\s+/g, '_')}.mp3`)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Download
+                </button>
+              </div>
+            ))}
           </div>
           <Link href="/" className="mt-8 block text-blue-600 hover:underline">
             ← Back to Home
@@ -143,9 +180,7 @@ const downloadFile = async (url: string, filename: string) => {
     <div className="min-h-screen bg-gray-100 p-8">
       <Navbar />
       <main className="container mx-auto mt-10">
-        <h2 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">
-          Checkout
-        </h2>
+        <h2 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">Checkout</h2>
         <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-2xl">
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Your Items</h3>
           {cart.length === 0 ? (
@@ -183,10 +218,9 @@ const downloadFile = async (url: string, filename: string) => {
                 <button
                   onClick={handleCheckout}
                   disabled={isProcessing}
-                  className={`w-full px-6 py-4 text-xl font-semibold rounded-lg transition-colors ${isProcessing
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
+                  className={`w-full px-6 py-4 text-xl font-semibold rounded-lg transition-colors ${
+                    isProcessing ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
                 >
                   {isProcessing ? 'Processing...' : 'Confirm and Pay'}
                 </button>

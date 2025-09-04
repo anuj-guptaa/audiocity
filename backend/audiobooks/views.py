@@ -53,48 +53,52 @@ class AudiobookViewSet(viewsets.ModelViewSet):
 class AudiobookCheckoutView(APIView):
     """
     Handles the checkout process for audiobooks.
-    Validates the request and generates secure, time-limited download URLs.
+    Generates secure, time-limited download URLs for all audio and transcription files.
     """
 
-    # You would typically add permission classes here to restrict access to authenticated users
     # permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        """
-        Processes a checkout request.
-        """
         try:
-            item_ids = request.data.get('items', [])
+            item_ids = request.data.get("items", [])
             if not isinstance(item_ids, list) or not item_ids:
-                return Response({"error": "Invalid request body. 'items' list is required."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid request body. 'items' list is required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-            # Fetch audiobooks from the database using Django's ORM
-            # This handles validation and checks if the items exist
             audiobooks = Audiobook.objects.filter(id__in=item_ids)
-
             if audiobooks.count() != len(item_ids):
-                return Response({"error": "One or more audiobooks not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "One or more audiobooks not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
             download_links = []
-            for audiobook in audiobooks:
-                try:
-                    # Generate a SAS URL for the audio file
-                    audio_url = self.get_blob_sas_url(audiobook.audio_file.name)
-                    
-                    # Generate a SAS URL for the transcription file
-                    transcription_url = self.get_blob_sas_url(audiobook.transcription_file.name)
 
-                    download_links.append({
-                        "id": str(audiobook.id),
-                        "title": audiobook.title,
-                        "audio_url": audio_url,
-                        "transcription_url": transcription_url,
-                        'cover_image': audiobook.cover_image.url if audiobook.cover_image else None
+            for audiobook in audiobooks:
+                audio_urls = [
+                    {
+                        "url": self.get_blob_sas_url(file_obj.file.name),
+                        "order": file_obj.order,
+                    }
+                    for file_obj in audiobook.audio_files.all().order_by("order")
+                ]
+
+                transcription_urls = []
+                if audiobook.transcription_file:
+                    transcription_urls.append({
+                        "url": self.get_blob_sas_url(audiobook.transcription_file.name),
+                        "order": 1,
                     })
-                except ValueError as e:
-                    # Log the error and continue, but don't fail the entire request
-                    print(f"Error generating SAS for audiobook {audiobook.id}: {e}")
-                    continue
+
+                download_links.append({
+                    "id": str(audiobook.id),
+                    "title": audiobook.title,
+                    "cover_image": audiobook.cover_image.url if audiobook.cover_image else None,
+                    "audio_urls": audio_urls,
+                    "transcription_urls": transcription_urls,
+                })
 
             return Response({
                 "message": "Order processed successfully.",
@@ -102,16 +106,15 @@ class AudiobookCheckoutView(APIView):
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": f"An unexpected error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def get_blob_sas_url(self, blob_name: str) -> str:
-        """
-        Generates a read-only SAS URL for a blob that is valid for 1 hour.
-        """
         if not AZURE_STORAGE_ACCOUNT_KEY or not AZURE_STORAGE_ACCOUNT_NAME:
             raise ValueError("Azure credentials are not set.")
-        
-        # This function generates the token for a specific blob.
+
         sas_token = generate_blob_sas(
             account_name=AZURE_STORAGE_ACCOUNT_NAME,
             container_name=AZURE_CONTAINER_NAME,
