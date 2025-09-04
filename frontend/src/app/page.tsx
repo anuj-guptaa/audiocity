@@ -10,7 +10,7 @@ import Navbar from './components/Navbar';
 const mockUser = {
   name: 'John Doe',
   email: 'john.doe@example.com',
-  role: 'admin', // can be 'admin' or 'regul<Navbar />ar'
+  role: 'admin', // can be 'admin' or 'regular'
 };
 
 interface Audiobook {
@@ -21,6 +21,7 @@ interface Audiobook {
   description: string;
   cover_image: string;
   tags: string;
+  file_url: string; // Ensure this property exists
 }
 
 export default function HomePage() {
@@ -39,6 +40,12 @@ export default function HomePage() {
     }
 
     setIsLoggedIn(true);
+
+    // Load cart from localStorage on initial render
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
 
     const fetchAudiobooks = async () => {
       try {
@@ -64,17 +71,24 @@ export default function HomePage() {
   const addToCart = (book: Audiobook) => {
     setCart((prevCart) => {
       if (prevCart.some((item) => item.id === book.id)) return prevCart;
-      return [...prevCart, book];
+      const newCart = [...prevCart, book];
+      localStorage.setItem('cart', JSON.stringify(newCart)); // Save to localStorage
+      return newCart;
     });
   };
 
   const removeFromCart = (bookId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== bookId));
+    setCart((prevCart) => {
+      const newCart = prevCart.filter((item) => item.id !== bookId);
+      localStorage.setItem('cart', JSON.stringify(newCart)); // Save to localStorage
+      return newCart;
+    });
   };
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('cart'); // Also clear the cart on logout
     setIsLoggedIn(false);
     router.replace('/login'); // redirect after logout
   };
@@ -100,8 +114,9 @@ export default function HomePage() {
         throw new Error(`Failed to delete audiobook: ${response.statusText}`);
       }
 
-      // Remove from local state after successful deletion
+      // Remove from local state and cart after successful deletion
       setAudiobooks((prev) => prev.filter((book) => book.id !== bookId));
+      removeFromCart(bookId); // Ensure it's removed from the cart as well
       alert('Audiobook deleted successfully!');
     } catch (error) {
       console.error(error);
@@ -197,8 +212,8 @@ export default function HomePage() {
                   onClick={() => addToCart(book)}
                   disabled={cart.some((item) => item.id === book.id)}
                   className={`px-6 py-2 rounded-lg transition-colors ${cart.some((item) => item.id === book.id)
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                 >
                   {cart.some((item) => item.id === book.id) ? 'In Cart' : 'Add to Cart'}
