@@ -9,11 +9,11 @@ export default function LogoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Remove tokens from localStorage
+    // remove tokens from localStorage
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
 
-    // Optional: redirect to login page after logout
+    // redirect to login page after logout
     router.replace('/login');
   }, [router]);
 

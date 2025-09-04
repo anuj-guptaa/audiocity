@@ -34,8 +34,8 @@ export default function Navbar() {
         router.replace('/login');
     };
 
-    if (isCheckingAuth) return null; // or a spinner
-
+    if (isCheckingAuth) return null;
+    
     return (
         <header className="flex justify-between items-center mb-10 pb-4 border-b border-gray-300">
             <div className="flex items-center space-x-4">

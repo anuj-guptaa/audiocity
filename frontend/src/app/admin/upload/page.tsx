@@ -203,7 +203,7 @@ export default function UploadAudiobookPage() {
                 {coverFile && <p className="text-sm text-gray-700">Selected: {coverFile.name}</p>}
               </div>
 
-              {/* Audio Files (Drag & Drop only) */}
+              {/* Audio Files*/}
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
                   dragOver ? "border-blue-600 bg-blue-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100"
@@ -231,7 +231,7 @@ export default function UploadAudiobookPage() {
               </div>
             </div>
 
-            {/* Scrollable file list (separate from box) */}
+            {/* Scrollable file list */}
             {audioFiles.length > 0 && (
               <div className="border rounded-lg p-4 bg-gray-50 max-h-64 overflow-y-auto">
                 <h4 className="font-medium text-gray-900 mb-2">Uploaded Files - <b>Ensure the ordering is correct</b></h4>
@@ -244,7 +244,7 @@ export default function UploadAudiobookPage() {
                       {/* Filename */}
                       <span className="flex-1 min-w-0 truncate text-sm text-gray-800">{item.file.name}</span>
 
-                      {/* Order + Delete */}
+                      {/* Ordering + Delete X */}
                       <div className="flex items-center gap-2 shrink-0">
                         <input
                           type="number"

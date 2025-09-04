@@ -21,7 +21,7 @@ interface Audiobook {
   description: string;
   cover_image: string;
   tags: string;
-  file_url: string; // Ensure this property exists
+  file_url: string; // URL to the audiobook file
 }
 
 export default function HomePage() {
@@ -183,7 +183,7 @@ export default function HomePage() {
             <div
               key={book.id}
               onClick={(e) => {
-                // Prevent click if Add to Cart or Delete buttons are clicked
+                // Prevent click if add to cart or delete buttons are clicked
                 const target = e.target as HTMLElement;
                 if (target.tagName === 'BUTTON') return;
                 router.push(`/audiobooks/${book.id}`);

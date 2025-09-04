@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-# Add this UserManager class
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
 
@@ -35,7 +34,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 class User(AbstractUser):
-    username = models.CharField(max_length=250, unique=False, blank=True, null=True) # Make username non-unique and optional
+    username = models.CharField(max_length=250, unique=False, blank=True, null=True) # username non-unique and optional, usually going to be same as email
     email = models.EmailField(_("email address"), unique=True)
 
     USERNAME_FIELD = "email"

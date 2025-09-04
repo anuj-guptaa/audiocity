@@ -26,7 +26,7 @@ export default function RegisterPage() {
     try {
       const res = await axios.post(
         'http://localhost:8000/api/v1/auth/registration/',
-        { email, password1, password2, username: email } // Using email as username
+        { email, password1, password2, username: email } // Use email as username
       );
 
       alert('Registration successful! Please login.');

@@ -9,6 +9,9 @@ from azure.storage.blob import generate_blob_sas, BlobSasPermissions
 
 from .models import Audiobook, AudiobookFile
 from .serializers import AudiobookSerializer
+
+from .tasks import transcribe_audio_file
+
 import os
 
 AZURE_STORAGE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
@@ -124,3 +127,20 @@ class AudiobookCheckoutView(APIView):
             expiry=datetime.utcnow() + timedelta(hours=1)
         )
         return f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
+    
+
+    
+class AudiobookTranscriptionView(APIView):
+    """
+    Trigger transcription for all audio files of a given audiobook
+    """
+    def post(self, request, audiobook_id):
+        try:
+            audiobook = Audiobook.objects.get(id=audiobook_id)
+        except Audiobook.DoesNotExist:
+            return Response({"error": "Audiobook not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        for file_obj in audiobook.audio_files.all():
+            transcribe_audio_file.delay(str(file_obj.id))  # Run async with Celery
+
+        return Response({"message": "Transcription tasks queued."}, status=status.HTTP_202_ACCEPTED)
