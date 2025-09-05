@@ -186,22 +186,38 @@ export default function UploadAudiobookPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              {/* Cover Image */}
-              <div className="space-y-2">
-                <label className="flex flex-col items-start">
-                  <span className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md cursor-pointer hover:bg-blue-700">
-                    <Upload className="w-4 h-4" /> Choose Cover Image *
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                    required
-                    // className="hidden"
-                  />
-                </label>
-                {coverFile && <p className="text-sm text-gray-700">Selected: {coverFile.name}</p>}
-              </div>
+{/* Cover Image Upload */}
+<div
+  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+    coverFile ? "border-blue-600 bg-blue-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100"
+  }`}
+  onDrop={(e) => {
+    e.preventDefault()
+    setCoverFile(e.dataTransfer.files?.[0] || null)
+  }}
+  onDragOver={(e) => e.preventDefault()}
+>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+    className="hidden"
+    id="cover-file"
+  />
+  <label
+    htmlFor="cover-file"
+    className="flex flex-col items-center justify-center h-full cursor-pointer"
+  >
+    <Upload className="w-8 h-8 text-blue-600 mb-2" />
+    <p className="text-gray-700 font-medium">Drag & drop cover image here (.jpg, .jpeg, .png)</p>
+    <p className="text-sm text-gray-500">or click to select a file</p>
+    {coverFile && (
+      <p className="mt-2 text-sm text-gray-700 font-medium">
+        Selected: {coverFile.name}
+      </p>
+    )}
+  </label>
+</div>
 
               {/* Audio Files*/}
               <div
@@ -225,7 +241,7 @@ export default function UploadAudiobookPage() {
                 />
                 <label htmlFor="audio-files" className="flex flex-col items-center justify-center h-full cursor-pointer">
                   <Music className="w-8 h-8 text-blue-600 mb-2" />
-                  <p className="text-gray-700 font-medium">Drag & drop audio files here</p>
+                  <p className="text-gray-700 font-medium">Drag & drop audio files here (.mp3, .wav)</p>
                   <p className="text-sm text-gray-500">or click to select multiple files</p>
                 </label>
               </div>

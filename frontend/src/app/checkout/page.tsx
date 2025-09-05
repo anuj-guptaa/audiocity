@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
-import JSZip from 'jszip'; // Make sure to install this library: npm install jszip
+import JSZip from 'jszip'; // client side zipper for download all button
 
 interface DownloadLink {
   id: string;
@@ -53,84 +53,86 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  const handleCheckout = async () => {
-    setIsProcessing(true);
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      alert('You are not logged in.');
-      setIsProcessing(false);
-      return;
-    }
+const handleCheckout = async () => {
+  setIsProcessing(true);
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    alert('You are not logged in.');
+    setIsProcessing(false);
+    return;
+  }
 
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/audiobooks/checkout/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ items: cart.map(item => item.id) }),
-      });
+  // Add a delay here
+  setTimeout(async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/audiobooks/checkout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items: cart.map(item => item.id) }),
+      });
 
-      if (!response.ok) throw new Error(`Checkout failed: ${response.statusText}`);
-      const data = await response.json();
+      if (!response.ok) throw new Error(`Checkout failed: ${response.statusText}`);
+      const data = await response.json();
 
-      const groupedLinks: GroupedDownloadLink[] = data.download_links.map((audiobookData: any) => {
-        const files: GroupedDownloadLink['files'] = [];
+      const groupedLinks: GroupedDownloadLink[] = data.download_links.map((audiobookData: any) => {
+        const files: GroupedDownloadLink['files'] = [];
 
-        // Handle audio files
-        const audioUrls = Array.isArray(audiobookData.audio_urls)
-          ? audiobookData.audio_urls
-          : audiobookData.audio_url
-            ? [{ url: audiobookData.audio_url, order: 1 }]
-            : [];
-        audioUrls.forEach((audioFile: any) => {
-          files.push({
-            audio: {
-              title: `${audiobookData.title}${audioFile.order ? ` (Audio ${audioFile.order})` : ' (Audio)'}`,
-              url: audioFile.url,
-              order: audioFile.order,
-            },
-          });
-        });
+        const audioUrls = Array.isArray(audiobookData.audio_urls)
+          ? audiobookData.audio_urls
+          : audiobookData.audio_url
+            ? [{ url: audiobookData.audio_url, order: 1 }]
+            : [];
+        audioUrls.forEach((audioFile: any) => {
+          files.push({
+            audio: {
+              title: `${audiobookData.title}${audioFile.order ? ` (Audio ${audioFile.order})` : ' (Audio)'}`,
+              url: audioFile.url,
+              order: audioFile.order,
+            },
+          });
+        });
 
-        // Handle transcription files and pair with existing audio files
-        const transcriptionUrls = Array.isArray(audiobookData.transcription_urls)
-          ? audiobookData.transcription_urls
-          : audiobookData.transcription_url
-            ? [{ url: audiobookData.transcription_url, order: 1 }]
-            : [];
-        transcriptionUrls.forEach((transcriptionFile: any) => {
-          const matchingAudioFile = files.find(f => f.audio && f.audio.order === transcriptionFile.order);
-          if (matchingAudioFile) {
-            matchingAudioFile.transcription = {
-              title: `${audiobookData.title}${transcriptionFile.order ? ` (Transcript ${transcriptionFile.order})` : ' (Transcript)'}`,
-              url: transcriptionFile.url,
-              order: transcriptionFile.order,
-            };
-          }
-        });
+        const transcriptionUrls = Array.isArray(audiobookData.transcription_urls)
+          ? audiobookData.transcription_urls
+          : audiobookData.transcription_url
+            ? [{ url: audiobookData.transcription_url, order: 1 }]
+            : [];
+        transcriptionUrls.forEach((transcriptionFile: any) => {
+          const matchingAudioFile = files.find(f => f.audio && f.audio.order === transcriptionFile.order);
+          if (matchingAudioFile) {
+            matchingAudioFile.transcription = {
+              title: `${audiobookData.title}${transcriptionFile.order ? ` (Transcript ${transcriptionFile.order})` : ' (Transcript)'}`,
+              url: transcriptionFile.url,
+              order: transcriptionFile.order,
+            };
+          }
+        });
 
-        return {
-          id: audiobookData.id,
-          title: audiobookData.title,
-          cover_image: audiobookData.cover_image,
-          author: cart.find(item => item.id === audiobookData.id)?.author || 'Unknown Author',
-          files: files,
-        };
-      });
+        return {
+          id: audiobookData.id,
+          title: audiobookData.title,
+          cover_image: audiobookData.cover_image,
+          author: cart.find(item => item.id === audiobookData.id)?.author || 'Unknown Author',
+          files: files,
+        };
+      });
 
-      setGroupedDownloadLinks(groupedLinks);
-      setIsOrderConfirmed(true);
-      localStorage.removeItem('cart');
-      setCart([]);
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('An error occurred during checkout. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+      setGroupedDownloadLinks(groupedLinks);
+      setIsOrderConfirmed(true);
+      localStorage.removeItem('cart');
+      setCart([]);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('An error occurred during checkout. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, 2000); // artificial 2 second delay for checkout processing simulation
+  
+  };
 
   const downloadFile = async (url: string, filename: string) => {
     try {
