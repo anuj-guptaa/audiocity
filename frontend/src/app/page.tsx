@@ -201,11 +201,18 @@ export default function HomePage() {
               <p className="text-sm text-gray-600 mt-1">by {book.author}</p>
               <p className="text-lg font-bold text-gray-800 mt-2">${book.price}</p>
               <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {book.tags.split(',').map((tag) => (
-                  <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                    {tag.trim()}
-                  </span>
-                ))}
+                {book.tags && book.tags.trim() !== "" ? (
+                  book.tags.split(',').map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs font-medium text-gray-500">Generating tags...</span>
+                )}
               </div>
               <div className="flex gap-2 mt-4">
                 <button

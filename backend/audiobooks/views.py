@@ -46,9 +46,15 @@ class AudiobookViewSet(viewsets.ModelViewSet):
         audio_files = request.FILES.getlist("audio_files")
         audio_orders = request.data.getlist("audio_orders")
 
+        created_files = []
         for i, file in enumerate(audio_files):
             order = int(audio_orders[i]) if i < len(audio_orders) else i
-            AudiobookFile.objects.create(audiobook=audiobook, file=file, order=order)
+            af = AudiobookFile.objects.create(audiobook=audiobook, file=file, order=order)
+            created_files.append(af)
+
+        # --- AUTOMATICALLY QUEUE TRANSCRIPTION TASKS ---
+        for af in created_files:
+            transcribe_audio_file.delay(str(af.id))
 
         serializer = self.get_serializer(audiobook)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
