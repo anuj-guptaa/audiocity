@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
+import JSZip from 'jszip'; // Make sure to install this library: npm install jszip
 
 interface DownloadLink {
   id: string;
@@ -40,6 +41,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
   const [groupedDownloadLinks, setGroupedDownloadLinks] = useState<GroupedDownloadLink[]>([]);
+  const [isZipping, setIsZipping] = useState<string | null>(null);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -149,6 +151,49 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleZipDownload = async (audiobook: GroupedDownloadLink) => {
+    setIsZipping(audiobook.id);
+    const zip = new JSZip();
+    const folder = zip.folder(audiobook.title.replace(/[\s\W]+/g, '_'));
+
+    const filePromises = audiobook.files.flatMap(fileGroup => {
+      const promises = [];
+      if (fileGroup.audio) {
+        promises.push(
+          fetch(fileGroup.audio.url)
+            .then(res => res.blob())
+            .then(blob => folder.file(`${fileGroup.audio.title.replace(/\s+/g, '_')}.mp3`, blob))
+        );
+      }
+      if (fileGroup.transcription) {
+        promises.push(
+          fetch(fileGroup.transcription.url)
+            .then(res => res.blob())
+            .then(blob => folder.file(`${fileGroup.transcription.title.replace(/\s+/g, '_')}.txt`, blob))
+        );
+      }
+      return promises;
+    });
+
+    try {
+      await Promise.all(filePromises);
+      const content = await zip.generateAsync({ type: 'blob' });
+      const blobUrl = window.URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${audiobook.title.replace(/\s+/g, '_')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Zipping failed:', error);
+      alert('Failed to create and download the ZIP file.');
+    } finally {
+      setIsZipping(null);
+    }
+  };
+
   if (isOrderConfirmed) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center justify-center text-center">
@@ -170,6 +215,18 @@ export default function CheckoutPage() {
                     <h3 className="text-xl font-bold text-gray-800">{audiobook.title}</h3>
                     <p className="text-sm text-gray-500">by {audiobook.author}</p>
                   </div>
+                </div>
+                
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => handleZipDownload(audiobook)}
+                    disabled={isZipping === audiobook.id}
+                    className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
+                      isZipping === audiobook.id ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {isZipping === audiobook.id ? 'Zipping...' : 'Download All (.zip)'}
+                  </button>
                 </div>
 
                 <div className="space-y-4 pl-4">
