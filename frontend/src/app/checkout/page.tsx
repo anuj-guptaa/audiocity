@@ -23,12 +23,23 @@ interface Audiobook {
   tags: string;
 }
 
+interface GroupedDownloadLink {
+  id: string;
+  title: string;
+  author: string;
+  cover_image: string;
+  files: {
+    audio?: { title: string; url: string; order?: number };
+    transcription?: { title: string; url: string; order?: number };
+  }[];
+}
+
 export default function CheckoutPage() {
   const [cart, setCart] = useState<Audiobook[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
-  const [downloadLinks, setDownloadLinks] = useState<DownloadLink[]>([]);
+  const [groupedDownloadLinks, setGroupedDownloadLinks] = useState<GroupedDownloadLink[]>([]);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -62,54 +73,52 @@ export default function CheckoutPage() {
       if (!response.ok) throw new Error(`Checkout failed: ${response.statusText}`);
       const data = await response.json();
 
-      // Flatten download links per audiobook
-      const generatedLinks: DownloadLink[] = [];
-      data.download_links.forEach((a: any) => {
-        // Multiple audio files
-        if (Array.isArray(a.audio_urls)) {
-          a.audio_urls.forEach((file: any, idx: number) => {
-            generatedLinks.push({
-              id: a.id,
-              title: `${a.title} (Audio ${file.order || idx + 1})`,
-              url: file.url,
-              type: 'audio',
-              cover_image: a.cover_image,
-              order: file.order || idx + 1,
-            });
-          });
-        } else {
-          generatedLinks.push({
-            id: a.id,
-            title: `${a.title} (Audio)`,
-            url: a.audio_url,
-            type: 'audio',
-            cover_image: a.cover_image,
-          });
-        }
+      const groupedLinks: GroupedDownloadLink[] = data.download_links.map((audiobookData: any) => {
+        const files: GroupedDownloadLink['files'] = [];
 
-        if (Array.isArray(a.transcription_urls)) {
-          a.transcription_urls.forEach((file: any) => {
-            generatedLinks.push({
-              id: a.id,
-              title: `${a.title} (Transcript ${file.order || ''})`,
-              url: file.url,
-              type: 'transcription',
-              cover_image: a.cover_image,
-              order: file.order,
-            });
+        // Handle audio files
+        const audioUrls = Array.isArray(audiobookData.audio_urls)
+          ? audiobookData.audio_urls
+          : audiobookData.audio_url
+            ? [{ url: audiobookData.audio_url, order: 1 }]
+            : [];
+        audioUrls.forEach((audioFile: any) => {
+          files.push({
+            audio: {
+              title: `${audiobookData.title}${audioFile.order ? ` (Audio ${audioFile.order})` : ' (Audio)'}`,
+              url: audioFile.url,
+              order: audioFile.order,
+            },
           });
-        } else if (a.transcription_url) {
-          generatedLinks.push({
-            id: a.id,
-            title: `${a.title} (Transcript)`,
-            url: a.transcription_url,
-            type: 'transcription',
-            cover_image: a.cover_image,
-          });
-        }
+        });
+
+        // Handle transcription files and pair with existing audio files
+        const transcriptionUrls = Array.isArray(audiobookData.transcription_urls)
+          ? audiobookData.transcription_urls
+          : audiobookData.transcription_url
+            ? [{ url: audiobookData.transcription_url, order: 1 }]
+            : [];
+        transcriptionUrls.forEach((transcriptionFile: any) => {
+          const matchingAudioFile = files.find(f => f.audio && f.audio.order === transcriptionFile.order);
+          if (matchingAudioFile) {
+            matchingAudioFile.transcription = {
+              title: `${audiobookData.title}${transcriptionFile.order ? ` (Transcript ${transcriptionFile.order})` : ' (Transcript)'}`,
+              url: transcriptionFile.url,
+              order: transcriptionFile.order,
+            };
+          }
+        });
+
+        return {
+          id: audiobookData.id,
+          title: audiobookData.title,
+          cover_image: audiobookData.cover_image,
+          author: cart.find(item => item.id === audiobookData.id)?.author || 'Unknown Author',
+          files: files,
+        };
       });
 
-      setDownloadLinks(generatedLinks);
+      setGroupedDownloadLinks(groupedLinks);
       setIsOrderConfirmed(true);
       localStorage.removeItem('cart');
       setCart([]);
@@ -146,25 +155,52 @@ export default function CheckoutPage() {
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full">
           <h2 className="text-3xl font-bold text-green-600 mb-4">✅ Order Confirmed!</h2>
           <p className="text-gray-700 mb-6">Thank you for your purchase. Your download links are ready.</p>
-          <div className="space-y-4">
-            {downloadLinks.map((item) => (
-              <div key={`${item.id}-${item.type}-${item.order}`} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-4">
+          <div className="space-y-6">
+            {groupedDownloadLinks.map((audiobook) => (
+              <div key={audiobook.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-center space-x-4 mb-4">
                   <Image
-                    src={item.cover_image}
-                    alt={`Cover of ${item.title}`}
-                    width={50}
-                    height={50}
+                    src={audiobook.cover_image}
+                    alt={`Cover of ${audiobook.title}`}
+                    width={80}
+                    height={80}
                     className="rounded-md shadow-sm"
                   />
-                  <span className="text-lg font-medium text-gray-800">{item.title}</span>
+                  <div className="text-left flex-1">
+                    <h3 className="text-xl font-bold text-gray-800">{audiobook.title}</h3>
+                    <p className="text-sm text-gray-500">by {audiobook.author}</p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => downloadFile(item.url, `${item.title.replace(/\s+/g, '_')}.mp3`)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Download
-                </button>
+
+                <div className="space-y-4 pl-4">
+                  {audiobook.files.map((fileGroup, index) => (
+                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1 mb-2 sm:mb-0 text-left">
+                        <span className="text-lg font-medium text-gray-800">
+                          {fileGroup.audio?.title || 'File'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        {fileGroup.audio && (
+                          <button
+                            onClick={() => downloadFile(fileGroup.audio.url, `${fileGroup.audio.title.replace(/\s+/g, '_')}.mp3`)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            Download Audio
+                          </button>
+                        )}
+                        {fileGroup.transcription && (
+                          <button
+                            onClick={() => downloadFile(fileGroup.transcription.url, `${fileGroup.transcription.title.replace(/\s+/g, '_')}.txt`)}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                          >
+                            Download Transcript
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

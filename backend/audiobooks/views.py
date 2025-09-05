@@ -86,27 +86,27 @@ class AudiobookCheckoutView(APIView):
             download_links = []
 
             for audiobook in audiobooks:
-                audio_urls = [
-                    {
+                audio_urls = []
+                file_transcriptions = []
+
+                for file_obj in audiobook.audio_files.all().order_by("order"):
+                    audio_urls.append({
                         "url": self.get_blob_sas_url(file_obj.file.name),
                         "order": file_obj.order,
-                    }
-                    for file_obj in audiobook.audio_files.all().order_by("order")
-                ]
-
-                transcription_urls = []
-                if audiobook.transcription_file:
-                    transcription_urls.append({
-                        "url": self.get_blob_sas_url(audiobook.transcription_file.name),
-                        "order": 1,
                     })
+                    if file_obj.transcription_file:
+                        file_transcriptions.append({
+                            "file_id": str(file_obj.id),
+                            "url": self.get_blob_sas_url(file_obj.transcription_file.name),
+                            "order": file_obj.order,
+                        })
 
                 download_links.append({
                     "id": str(audiobook.id),
                     "title": audiobook.title,
                     "cover_image": audiobook.cover_image.url if audiobook.cover_image else None,
                     "audio_urls": audio_urls,
-                    "transcription_urls": transcription_urls,
+                    "transcription_urls": file_transcriptions,  # only individual file transcriptions
                 })
 
             return Response({
