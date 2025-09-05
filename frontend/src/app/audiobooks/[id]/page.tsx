@@ -124,18 +124,22 @@ export default function AudiobookPage() {
           alt={book.title}
           className="rounded-md mb-6"
         />
-        <h1 className="text-4xl font-bold mb-2">{book.title}</h1>
+        <h1 className="text-4xl text-gray-700 font-bold mb-2">{book.title}</h1>
         <p className="text-xl text-gray-700 mb-4">by {book.author}</p>
-        <div className="flex flex-wrap justify-center gap-2 mb-4">
-          {book.tags.split(',').map((tag) => (
-            <span
-              key={tag}
-              className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
-            >
-              {tag.trim()}
-            </span>
-          ))}
-        </div>
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
+                {book.tags && book.tags.trim() !== "" ? (
+                  book.tags.split(',').map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs font-medium text-gray-500">Generating tags...</span>
+                )}
+              </div>
         <p className="text-2xl font-bold text-gray-800 mb-4">${book.price}</p>
         <Link
           href="/checkout"
@@ -146,10 +150,14 @@ export default function AudiobookPage() {
       </div>
 
       {/* Description Section */}
-      <div className="bg-white rounded-lg shadow-lg p-8 mt-8 max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold mb-4 text-gray-800">Description</h2>
-        <p className="text-gray-700 leading-relaxed">{book.description}</p>
-      </div>
+<div className="bg-white rounded-lg shadow-lg p-8 mt-8 max-w-3xl mx-auto">
+  <h2 className="text-3xl font-bold mb-4 text-gray-800">Description</h2>
+  <p className="text-gray-700 leading-relaxed">
+    {book.description && book.description.trim() !== ""
+      ? book.description
+      : "Generating description..."}
+  </p>
+</div>
     </div>
   );
 }
