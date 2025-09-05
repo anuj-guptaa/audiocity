@@ -19,8 +19,9 @@ class AudiobookSerializer(serializers.ModelSerializer):
             "price",
             "description",
             "cover_image",
-            "tags",  
+            "tags",
             "created_at",
             "audio_files",
+            "transcription_file",
         ]
         read_only_fields = ["id", "created_at"]

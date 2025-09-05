@@ -19,7 +19,7 @@ class Audiobook(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
 
     cover_image = models.FileField(storage=AzureAudiobookStorage(), upload_to=cover_upload_path)
-
+    transcription_file = models.FileField(storage=AzureAudiobookStorage(), upload_to=transcription_upload_path, blank=True, null=True)
     tags = models.CharField(max_length=200, blank=True)  # Comma-separated tags
     created_at = models.DateTimeField(auto_now_add=True)
 

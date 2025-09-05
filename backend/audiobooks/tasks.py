@@ -24,6 +24,7 @@ def test_task():
 def transcribe_audio_file(audiobook_file_id):
     """
     Transcribe a single AudiobookFile and store the transcription JSON in AudiobookFile.
+    Then rebuild a combined transcription.json at the Audiobook level.
     """
     logger.info(f"Starting transcription for AudiobookFile ID {audiobook_file_id}")
     file_obj = AudiobookFile.objects.get(id=audiobook_file_id)
@@ -42,16 +43,10 @@ def transcribe_audio_file(audiobook_file_id):
     AudioSegment.from_file(audio_file_path).export(audio_wav_path, format="wav")
 
     # Call Azure GPT-4o Transcribe API
-    headers = {
-        "api-key": AZURE_TRANSCRIBE_KEY,
-    }
+    headers = {"api-key": AZURE_TRANSCRIBE_KEY}
     with open(audio_wav_path, "rb") as f:
-        files = {
-            "file": (os.path.basename(audio_wav_path), f, "audio/wav"),
-        }
-        data = {
-            "model": AZURE_TRANSCRIBE_MODEL,
-        }
+        files = {"file": (os.path.basename(audio_wav_path), f, "audio/wav")}
+        data = {"model": AZURE_TRANSCRIBE_MODEL}
         response = requests.post(
             AZURE_TRANSCRIBE_ENDPOINT,
             headers=headers,
@@ -62,11 +57,34 @@ def transcribe_audio_file(audiobook_file_id):
     transcript = response.json()
     logger.info(f"Transcription result: {transcript}")
 
-    # Save transcription JSON to AudiobookFile
+    # Save individual transcript
     file_obj.transcription_file.save(
         f"{file_obj.id}_transcription.json",
-        ContentFile(json.dumps(transcript).encode("utf-8")),
+        ContentFile(json.dumps(transcript, ensure_ascii=False).encode("utf-8")),
         save=True,
     )
+
+    # # Rebuild combined transcript at Audiobook level
+    # combined = []
+    # for f in file_obj.audiobook.audio_files.order_by("order"):
+    #     if f.transcription_file:
+    #         f.transcription_file.open("rb")
+    #         try:
+    #             content = f.transcription_file.read().decode("utf-8")
+    #             if content.strip():
+    #                 data = json.loads(content)
+    #                 combined.append({
+    #                     "file_id": str(f.id),
+    #                     "order": f.order,
+    #                     "transcript": data,
+    #                 })
+    #         finally:
+    #             f.transcription_file.close()
+
+    # file_obj.audiobook.transcription_file.save(
+    #     f"{file_obj.audiobook.id}_transcription.json",
+    #     ContentFile(json.dumps(combined, ensure_ascii=False, indent=2).encode("utf-8")),
+    #     save=True,
+    # )
 
     return {"audiobook_file_id": audiobook_file_id, "status": "done"}
