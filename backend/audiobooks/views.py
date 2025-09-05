@@ -147,6 +147,7 @@ class AudiobookTranscriptionView(APIView):
         for file_obj in audiobook.audio_files.all():
             print(file_obj)
             print(f"Transcribing file")
+            print(file_obj.id)
             transcribe_audio_file.delay(str(file_obj.id))  # Run async with Celery
 
         return Response({"message": "Transcription tasks queued."}, status=status.HTTP_202_ACCEPTED)

@@ -143,11 +143,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-print("DB SETTINGS")
-print(os.environ.get("POSTGRES_DB"))
-print(os.environ.get("POSTGRES_USER"))
-print(os.environ.get("POSTGRES_PASSWORD"))
-print(os.environ.get("POSTGRES_HOST"))
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Database
 DATABASES = {
