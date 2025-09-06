@@ -34,10 +34,12 @@ export default function HomePage() {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
+
     if (!token) {
       router.replace('/login'); // redirect immediately
       return;
     }
+   
 
     setIsLoggedIn(true);
 
@@ -52,6 +54,14 @@ export default function HomePage() {
         const response = await fetch('http://localhost:8000/api/v1/audiobooks/', {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (response.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          setIsLoggedIn(false);
+          router.replace('/login'); // redirect immediately
+          return;
+        }
 
         if (!response.ok) {
           throw new Error(`Error fetching audiobooks: ${response.statusText}`);

@@ -88,8 +88,8 @@ CELERY_TIMEZONE = 'UTC'
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # default is 5 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # default is 1 day
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60),   # 1 minute
+    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=3600),  # 1 hour
     'ROTATE_REFRESH_TOKENS': True, 
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
