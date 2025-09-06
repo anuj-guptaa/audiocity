@@ -63,7 +63,7 @@ export default function HomePage() {
           return;
         }
 
-        if (!response.ok) {
+        else if (!response.ok) {
           throw new Error(`Error fetching audiobooks: ${response.statusText}`);
         }
 

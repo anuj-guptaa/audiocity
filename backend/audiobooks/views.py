@@ -10,7 +10,7 @@ from azure.storage.blob import generate_blob_sas, BlobSasPermissions
 from .models import Audiobook, AudiobookFile
 from .serializers import AudiobookSerializer
 
-from .tasks import transcribe_audio_file
+from .tasks import transcribe_audio_file, generate_summary_and_tags
 
 import os
 
@@ -157,3 +157,23 @@ class AudiobookTranscriptionView(APIView):
             transcribe_audio_file.delay(str(file_obj.id))  # Run async with Celery
 
         return Response({"message": "Transcription tasks queued."}, status=status.HTTP_202_ACCEPTED)
+    
+
+class AudiobookSummaryView(APIView):
+    """
+    Trigger summary and tag generation for a given audiobook
+    """
+    def post(self, request, audiobook_id):
+        try:
+            audiobook = Audiobook.objects.get(id=audiobook_id)
+            print(f"Found audiobook: {audiobook.title}")
+        except Audiobook.DoesNotExist:
+            return Response({"error": "Audiobook not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Queue Celery task
+        generate_summary_and_tags.delay(str(audiobook.id))
+
+        return Response(
+            {"message": "Summary and tags generation task queued."},
+            status=status.HTTP_202_ACCEPTED
+        )

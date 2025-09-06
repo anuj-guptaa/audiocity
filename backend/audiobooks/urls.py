@@ -8,7 +8,9 @@ router.register(r"audiobooks", AudiobookViewSet, basename="audiobook")
 
 urlpatterns = [
     path('audiobooks/checkout/', AudiobookCheckoutView.as_view(), name='audiobook-checkout'),
-    path('audiobooks/<uuid:audiobook_id>/transcribe/', AudiobookTranscriptionView.as_view(), name='transcribe-audiobook'),
+    path('audiobooks/<uuid:audiobook_id>/transcribe/', AudiobookTranscriptionView.as_view(), name='transcribe-audiobook'), # celery task for transcription
+    path("audiobooks/<uuid:audiobook_id>/summarize/", AudiobookSummaryView.as_view(), name="audiobook-summarize"), # celery task for summarization and tagging
+
 
     path('', include(router.urls)),
     

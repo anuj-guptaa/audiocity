@@ -24,9 +24,9 @@ export default function LoginPage() {
 
       localStorage.setItem('access_token', res.data.access);
       localStorage.setItem('refresh_token', res.data.refresh);
-      console.log('Login successful');
-      console.log(localStorage.getItem('access_token'));
-      console.log(localStorage.getItem('refresh_token'));
+      // console.log('Login successful');
+      // console.log(localStorage.getItem('access_token'));
+      // console.log(localStorage.getItem('refresh_token'));
       router.push('/');
     } catch (error) {
       console.error('Failed to log in', error);
