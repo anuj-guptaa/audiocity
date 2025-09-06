@@ -4,7 +4,7 @@ from .models import Audiobook, AudiobookFile
 class AudiobookFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AudiobookFile
-        fields = ["id", "file", "order", "transcription_file"]
+        fields = ["id", "file", "order", "transcription_file", "created_at"]
 
 
 class AudiobookSerializer(serializers.ModelSerializer):

@@ -127,7 +127,7 @@ def transcribe_audio_file(self, audiobook_file_id):
 
 @shared_task(bind=True,
              autoretry_for=(AIServiceError, RequestException),
-             retry_kwargs={'max_retries': 5, 'countdown': 60})
+             retry_kwargs={'max_retries': 0, 'countdown': 60})
 def generate_summary_and_tags(self, audiobook_id):
     """
     Generate a 1-paragraph summary and up to 3 tags from the first transcription
@@ -165,14 +165,14 @@ def generate_summary_and_tags(self, audiobook_id):
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful assistant that summarizes audiobook transcripts. "
-                        "Always return output in strict JSON format with keys: "
+                        "You are a helpful assistant that writes descriptions and tags for audiobooks. "
+                        "ALWAYS return output in strict JSON format with keys: "
                         "`summary` (string, 1 paragraph) and `tags` (list of up to 3 strings)."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"Here is a transcript:\n\n{transcript_text}\n\nSummarize it now."
+                    "content": f"Here is a transcript:\n\n{transcript_text}\n\nWrite an introductory description of the entire book."
                 }
             ],
             "max_tokens": 300,

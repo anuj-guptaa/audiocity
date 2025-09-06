@@ -33,6 +33,7 @@ class AudiobookFile(models.Model):
     file = models.FileField(storage=AzureAudiobookStorage(), upload_to=audio_upload_path)
     order = models.PositiveIntegerField(default=0)
     transcription_file = models.FileField(storage=AzureAudiobookStorage(), upload_to=transcription_upload_path, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["order"]
