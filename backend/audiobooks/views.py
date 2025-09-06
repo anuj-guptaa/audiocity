@@ -52,12 +52,45 @@ class AudiobookViewSet(viewsets.ModelViewSet):
             af = AudiobookFile.objects.create(audiobook=audiobook, file=file, order=order)
             created_files.append(af)
 
-        # --- AUTOMATICALLY QUEUE TRANSCRIPTION TASKS ---
         for af in created_files:
             transcribe_audio_file.delay(str(af.id))
 
         serializer = self.get_serializer(audiobook)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        audiobook = self.get_object()
+        # Delete associated files from Azure Blob Storage
+        for file_obj in audiobook.audio_files.all():
+            if file_obj.file:
+                self.delete_blob(file_obj.file.name)
+            if file_obj.transcription_file:
+                self.delete_blob(file_obj.transcription_file.name)
+
+        # Delete cover image if exists
+        if audiobook.cover_image:
+            self.delete_blob(audiobook.cover_image.name)
+
+        # Delete audiobook and related AudiobookFile objects
+        audiobook.delete()
+        return Response({"message": "Audiobook and all associated files deleted."}, status=status.HTTP_204_NO_CONTENT)
+
+    def delete_blob(self, blob_name: str):
+        from azure.storage.blob import BlobServiceClient
+
+        if not AZURE_STORAGE_ACCOUNT_KEY or not AZURE_STORAGE_ACCOUNT_NAME:
+            raise ValueError("Azure credentials are not set.")
+
+        blob_service_client = BlobServiceClient(
+            f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
+            credential=AZURE_STORAGE_ACCOUNT_KEY
+        )
+        blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
+        try:
+            blob_client.delete_blob()
+            print(f"Deleted blob: {blob_name}")
+        except Exception as e:
+            print(f"Error deleting blob {blob_name}: {e}")
     
 class AudiobookCheckoutView(APIView):
     """

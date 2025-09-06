@@ -28,7 +28,7 @@ class AIServiceError(Exception):
 
 @shared_task(bind=True,  # Binds the task instance to the function, allowing access to `self`
              autoretry_for=(AIServiceError, RequestException), # Error handling IF openai api fails
-             retry_kwargs={'max_retries': 5, 'countdown': 60}) # Max 5 retries
+             retry_kwargs={'max_retries': 2, 'countdown': 20}) # Max 3 retries
 def transcribe_audio_file(self, audiobook_file_id):
     """
     Transcribe a single AudiobookFile and store the transcription JSON.
@@ -87,7 +87,7 @@ def transcribe_audio_file(self, audiobook_file_id):
                 raise AIServiceError(f"AI API request error: {e}")
 
         transcript = response.json()
-        logger.info(f"Transcription result for {audiobook_file_id}: {transcript}")
+        # logger.info(f"Transcription result for {audiobook_file_id}: {transcript}")
 
         # 4. Save individual transcript to the AudiobookFile model
         file_obj.transcription_file.save(
@@ -99,6 +99,10 @@ def transcribe_audio_file(self, audiobook_file_id):
         file_obj.status = 'SUCCESS'
         file_obj.save()
         logger.info(f"Successfully processed AudiobookFile {audiobook_file_id}")
+
+        # Trigger next task - summary generation for the audiobook using first transcript
+        generate_summary_and_tags.delay(str(file_obj.audiobook.id))  # <-- new line
+
         return {"audiobook_file_id": audiobook_file_id, "status": "success"}
 
     except (AudiobookFile.DoesNotExist, Audiobook.DoesNotExist) as e:
@@ -127,7 +131,7 @@ def transcribe_audio_file(self, audiobook_file_id):
 
 @shared_task(bind=True,
              autoretry_for=(AIServiceError, RequestException),
-             retry_kwargs={'max_retries': 0, 'countdown': 60})
+             retry_kwargs={'max_retries': 0, 'countdown': 20})
 def generate_summary_and_tags(self, audiobook_id):
     """
     Generate a 1-paragraph summary and up to 3 tags from the first transcription
@@ -135,7 +139,7 @@ def generate_summary_and_tags(self, audiobook_id):
     """
     logger.info(f"Starting summary/tag generation for Audiobook ID {audiobook_id}")
     try:
-        # 1. Get the audiobook and its first transcription file
+        # 1. Get the audiobook and its first transcription file - no need to use the entire transcript
         audiobook = Audiobook.objects.get(id=audiobook_id)
         first_file = AudiobookFile.objects.filter(
             audiobook=audiobook,
@@ -154,7 +158,7 @@ def generate_summary_and_tags(self, audiobook_id):
         transcript_text = transcript_data.get("text") or transcript_content
         logger.debug(f"Transcript snippet for {audiobook_id}: {transcript_text[:200]}...")
 
-        # 2. Call Azure LLM for summary + tags
+        # 2. Call Azure LLM for summary + tags (PROMPT)
         headers = {
             "api-key": AZURE_SUMMARIZE_KEY,
             "Content-Type": "application/json"
@@ -165,7 +169,7 @@ def generate_summary_and_tags(self, audiobook_id):
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful assistant that writes descriptions and tags for audiobooks. "
+                        "You are a helpful assistant that writes descriptions and tags for audiobooks. Return only valid JSON — do not wrap it in ``` or any extra characters. "
                         "ALWAYS return output in strict JSON format with keys: "
                         "`summary` (string, 1 paragraph) and `tags` (list of up to 3 strings)."
                     )
@@ -195,7 +199,7 @@ def generate_summary_and_tags(self, audiobook_id):
         result = response.json()
         logger.debug(f"Raw AI response: {result}")
 
-        # Extract AI output (structured JSON string)
+        # Extract AI output (strict structured JSON string)
         ai_output = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
 
         try:
