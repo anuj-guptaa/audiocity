@@ -100,8 +100,16 @@ def transcribe_audio_file(self, audiobook_file_id):
         file_obj.save()
         logger.info(f"Successfully processed AudiobookFile {audiobook_file_id}")
 
-        # Trigger next task - summary generation for the audiobook using first transcript
-        generate_summary_and_tags.delay(str(file_obj.audiobook.id))  # <-- new line
+        logger.info("FILE OBJ ORDER:")
+        logger.info(file_obj.order)
+        logger.info(file_obj.order)
+        logger.info(file_obj.order)
+        logger.info(file_obj.order)
+        logger.info(file_obj.order)
+
+        # Trigger next task - summary generation for the audiobook using first transcript ONLY
+        if file_obj.order == 1:
+            generate_summary_and_tags.delay(str(file_obj.audiobook.id))  # <-- new line
 
         return {"audiobook_file_id": audiobook_file_id, "status": "success"}
 

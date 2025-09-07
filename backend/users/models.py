@@ -36,6 +36,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = models.CharField(max_length=250, unique=False, blank=True, null=True) # username non-unique and optional, usually going to be same as email
     email = models.EmailField(_("email address"), unique=True)
+    role = models.CharField(max_length=50, blank=True, null=True)  # 'admin', 'user', etc.
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
