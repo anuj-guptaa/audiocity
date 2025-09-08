@@ -35,6 +35,15 @@ class AudiobookFile(models.Model):
     transcription_file = models.FileField(storage=AzureAudiobookStorage(), upload_to=transcription_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('SUCCESS', 'Success'),
+        ('FAILED', 'Failed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+
     class Meta:
         ordering = ["order"]
 
