@@ -133,7 +133,7 @@ The application includes automated unit tests for the backend logic.
 ## Failure Handling and Robustness
 
 ### 1. AI Service Failures
-The use of Celery in this application is crucial as it allows for AI service API calls to be automatically retried in the event that it fails for whatever reason - the API may be down, a rate or token limit is reached, or a network issue occurs. Celery’s task queue ensures that failed requests are not lost. Instead, they are rescheduled and retried according to configurable retry policies in `tasks.py`. The tasks are also performed asyncronously so the backend API is not overloaded.
+The use of Celery in this application is crucial as it allows for AI service API calls to be automatically retried in the event that it fails for whatever reason. The API may be down, a rate or token limit is reached, or a network issue occurs. Celery’s task queue ensures that failed requests are not lost. Instead, they are rescheduled and retried according to configurable retry policies in `tasks.py`. The tasks are also performed asyncronously so the backend API is not overloaded.
 
 ### 2. Containerization
 The whole application is dockerized. Thus, by simply cloning this repo and adding an env file, the complete application is ready to use. This allows for rapid deployment and ensures consistency across machines.
