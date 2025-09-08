@@ -2,6 +2,9 @@
 
 This repository contains the full-stack application and infrastructure for a modern audiobook store. The platform allows users to browse and purchase audiobooks, while leveraging asynchronous AI tasks for transcription and content generation. The entire system is orchestrated using Docker Compose for a streamlined development and deployment workflow.
 
+## AudioCity User Flow:
+![User Flow](images/your-image-file.png)
+
 -----
 
 ### Key Features
