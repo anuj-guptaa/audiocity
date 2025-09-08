@@ -12,7 +12,7 @@ export default function GoogleLoginButton() {
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await axios.post(`${API_URL}/api/v1/auth/google/`, {
+        const res = await axios.post(`${API_URL}/auth/google/`, {
           access_token: tokenResponse.access_token, // <-- send access_token
         });
 
