@@ -3,6 +3,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+
 from datetime import datetime, timedelta
 
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
@@ -60,6 +62,10 @@ class AudiobookViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
+
+        if getattr(request.user, "role", None) != "admin":
+            raise PermissionDenied("You do not have permission to delete this audiobook.")
+
         audiobook = self.get_object()
         # Delete associated files from Azure Blob Storage
         for file_obj in audiobook.audio_files.all():

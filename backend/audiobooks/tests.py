@@ -21,10 +21,10 @@ class AudiobookViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email=f'user_{uuid.uuid4().hex}@test.com', password='password'
+            email=f'user_{uuid.uuid4().hex}@test.com', password='password', role='user'
         )
         self.admin = User.objects.create_superuser(
-            email=f'admin_{uuid.uuid4().hex}@test.com', password='password'
+            email=f'admin_{uuid.uuid4().hex}@test.com', password='password', role='admin'
         )
 
         # Mock authentication for admin
