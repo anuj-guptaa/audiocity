@@ -1,30 +1,68 @@
 version: '3.8'
 
 services:
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: frontend_dev
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   environment:
-  #     # The backend is accessible via its service name 'backend' on port 8000
-  #     - NEXT_PUBLIC_API_URL=http://backend:8000/api/v1
 
-  #   depends_on:
-  #     - backend
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=anujgupta@windowslive.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+      # HTTP → HTTPS redirection
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend_dev
+    # ports:
+    #   - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      # The backend is accessible via its service name 'backend' on port 8000
+      - NEXT_PUBLIC_API_URL=https://api.audiocity.aibrainlab.co/api/v1
+
+
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      # Main router for www
+      - "traefik.http.routers.frontend.rule=Host(`shop.audiocity.aibrainlab.co`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      # Optional router for non-www → www redirection
+      - "traefik.http.routers.frontend-nonwww.rule=Host(`shop.audiocity.aibrainlab.co`)"
+      - "traefik.http.routers.frontend-nonwww.entrypoints=websecure"
+      - "traefik.http.routers.frontend-nonwww.middlewares=redirect-to-www"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.regex=^https://liveness-detection\\.aibrainlab\\.co/(.*)"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.replacement=https://www.liveness-detection.aibrainlab.co/$1"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.permanent=true"
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
     container_name: backend_dev
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     volumes:
       - ./backend:/app
     env_file:
@@ -32,6 +70,20 @@ services:
     depends_on:
       - redis
       - db
+    labels:
+      - "traefik.enable=true"
+      # Main router for www
+      - "traefik.http.routers.backend.rule=Host(`api.audiocity.aibrainlab.co`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=le"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      # Optional router for non-www → www redirection
+      - "traefik.http.routers.backend-nonwww.rule=Host(`api.audiocity.aibrainlab.co`)"
+      - "traefik.http.routers.backend-nonwww.entrypoints=websecure"
+      - "traefik.http.routers.backend-nonwww.middlewares=redirect-to-www"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.regex=^https://liveness-detection\\.aibrainlab\\.co/(.*)"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.replacement=https://www.liveness-detection.aibrainlab.co/$1"
+      # - "traefik.http.middlewares.redirect-to-www.redirectregex.permanent=true"
 
   # ---------------------------------------------------
   # Worker: Celery for Asynchronous Tasks
@@ -71,3 +123,4 @@ services:
 # Make sure this volume is defined at the end
 volumes:
   postgres_data:
+  letsencrypt:

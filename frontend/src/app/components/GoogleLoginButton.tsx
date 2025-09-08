@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation';
 export default function GoogleLoginButton() {
   const router = useRouter();
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  
+
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await axios.post('http://localhost:8000/api/v1/auth/google/', {
+        const res = await axios.post(`${API_URL}/api/v1/auth/google/`, {
           access_token: tokenResponse.access_token, // <-- send access_token
         });
 

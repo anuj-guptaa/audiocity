@@ -31,6 +31,7 @@ export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(mockUser);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -51,7 +52,7 @@ export default function HomePage() {
 
     const fetchAudiobooks = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/audiobooks/', {
+        const response = await fetch(`${API_URL}/audiobooks/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -113,7 +114,7 @@ export default function HomePage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/audiobooks/${bookId}/`, {
+      const response = await fetch(`${API_URL}/audiobooks/${bookId}/`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
