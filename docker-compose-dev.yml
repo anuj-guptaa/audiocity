@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend_dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      # The backend is accessible via its service name 'backend' on port 8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: backend_dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - dev.env
+    depends_on:
+      - redis
+      - db
+
+  # ---------------------------------------------------
+  # Worker: Celery for Asynchronous Tasks
+  # ---------------------------------------------------
+  # Runs a Celery worker to process background jobs like AI transcription.
+  # It uses the same image and code as the backend service.
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: celery_worker_dev
+    command: celery -A core worker -l info
+    volumes:
+      - ./backend:/app
+    env_file:
+      - dev.env
+    depends_on:
+      - backend
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  redis:
+    image: redis:7-alpine
+    container_name: redis_dev
+
+# Make sure this volume is defined at the end
+volumes:
+  postgres_data:

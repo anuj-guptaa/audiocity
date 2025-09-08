@@ -5,6 +5,9 @@ Django settings for core project.
 from pathlib import Path
 import os
 
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -53,7 +56,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-REST_AUTH_PASSWORD_RESET_CONFIRM_URL = "http://localhost:3000/login/password-reset-confirm/{uid}/{token}"
+REST_AUTH_PASSWORD_RESET_CONFIRM_URL = f"{FRONTEND_URL}/login/password-reset-confirm/{{uid}}/{{token}}"
 
 
 MIDDLEWARE = [

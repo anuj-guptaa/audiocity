@@ -29,8 +29,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     container_name: frontend_dev
-    # ports:
-    #   - "3000:3000"
+    ports:
+      - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -61,8 +61,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     container_name: backend_dev
-    # ports:
-    #   - "8000:8000"
+    ports:
+      - "8000:8000"
     volumes:
       - ./backend:/app
     env_file:
