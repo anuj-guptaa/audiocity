@@ -104,6 +104,9 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+***NOTE: Site admins must be manually added by giving them the `admin` role through the Django backend - http://localhost:8000/admin***
+
+
 The backend API will be available at `http://localhost:8000`, and the frontend at `http://localhost:3000`.
 
 -----
