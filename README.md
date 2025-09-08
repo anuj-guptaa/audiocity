@@ -29,7 +29,7 @@ The application is a full-stack project comprised of several services orchestrat
 
   * **Frontend**:
 
-      * **Framework**: Next.js 15 with React 19. Chosen due to it's server side rendering capabilities which allows for better search rankings due to pre-rendered pages.
+      * **Framework**: Next.js 15 with React 19. Chosen due to its server side rendering capabilities which allows for better search rankings due to pre-rendered pages.
       * **Styling**: Tailwind CSS. For simplicity and quick time-to-prototype.
       * **Features**: Client-side cart management using `localStorage` and a ZIP download feature using `jszip` for bulk downloads.
 
