@@ -1,4 +1,4 @@
-### AUDIOCITY - Audiobook App: A Full-Stack E-commerce Platform with AI Iegrationnt
+# AUDIOCITY - Audiobook App: A Full-Stack E-commerce Platform with AI Iegrationnt
 
 This repository contains the full-stack application and infrastructure for a modern audiobook store. The platform allows users to browse and purchase audiobooks, while leveraging asynchronous AI tasks for transcription and content generation. The entire system is orchestrated using Docker Compose for a streamlined development and deployment workflow.
 
@@ -24,6 +24,9 @@ This repository contains the full-stack application and infrastructure for a mod
 
 The application is a full-stack project comprised of several services orchestrated with Docker Compose.
 
+## AudioCity Services:
+![Services](images/AudioCity Services.png)
+
   * **Frontend**:
 
       * **Framework**: Next.js 15 with React 19.
@@ -42,6 +45,9 @@ The application is a full-stack project comprised of several services orchestrat
       * **`celery_worker`**: A dedicated service for processing asynchronous tasks.
       * **`db`**: PostgreSQL database container.
       * **`redis`**: Used as the message broker for Celery.
+
+## AudioCity Architecture:
+![Architecturew](images/AudioCity Architecture.png)
 
 -----
 
