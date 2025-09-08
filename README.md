@@ -48,7 +48,7 @@ The application is a full-stack project comprised of several services orchestrat
 
   * Docker and Docker Compose installed.
 
-#### Environment Configuration
+#### Environment Configuration (ask me for the real envs)
 
 Create a `.env` file in the root directory.
 
