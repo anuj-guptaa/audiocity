@@ -88,9 +88,9 @@ AZURE_SUMMARIZE_KEY=your_azure-summarize-key
 AZURE_SUMMARIZE_MODEL=gpt-4o-mini
 ```
 
-#### Running the Application
+### Running the Application
 
-From the root directory, run the following command to build and start all services:
+From the root directory, run the following command to build and start all services (local version):
 
 ```bash
 docker-compose -f docker-compose-dev.yml up
@@ -130,9 +130,17 @@ The application includes automated unit tests for the backend logic.
     python manage.py test users
     ```
 
-### Failure Handling and Robustness
-1. Audiobook file uploading:
+## Failure Handling and Robustness
 
-2. AI Service Failures
+### 1. AI Service Failures
+The use of Celery in this application is crucial as it allows for AI service API calls to be automatically retried in the event that it fails for whatever reason - the API may be down, a rate or token limit is reached, or a network issue occurs. Celery’s task queue ensures that failed requests are not lost. Instead, they are rescheduled and retried according to configurable retry policies in `tasks.py`. The tasks are also performed asyncronously so the backend API is not overloaded.
+
+### 2. Containerization
+The whole application is dockerized. Thus, by simply cloning this repo and adding an env file, the complete application is ready to use. This allows for rapid deployment and ensures consistency across machines.
+
+### 3. Audiobook file uploading:
+When an admin user uploads audiobook files, there are usually more than 1 file per audiobook. As such, when uploading, the admin is able to reorder the files to ensure that the systems knows the ordering of the files. This allows keeps the transcriptions in order.
+
+Additionally, audiobook files and transcriptions get saved to Azure Blob Storage. This utilizes a chunking strategy wherein larger files are split into chunks, this allows for more robust file uploading. In the event that a file upload process fails, part of the file may have successfully been uploaded and only the remaining part can be retried - resumable uploads.
    
 
