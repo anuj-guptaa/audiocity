@@ -59,7 +59,7 @@ The application is a full-stack project comprised of several services orchestrat
 
 #### Environment Configuration (ask me for the real envs)
 
-Create a `.env` file in the root directory.
+Create a `dev.env` file in the root directory.
 
 ```
 # Django Configuration
@@ -93,7 +93,7 @@ AZURE_SUMMARIZE_MODEL=gpt-4o-mini
 From the root directory, run the following command to build and start all services:
 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose-dev.yml up
 ```
 
 Migrate the database structure from the backend. Inside the backend container shell, run:
