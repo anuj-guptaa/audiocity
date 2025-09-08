@@ -24,6 +24,7 @@ export default function UploadAudiobookPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleFilesAdded = (files: FileList | null) => {
     if (!files) return
@@ -79,7 +80,7 @@ export default function UploadAudiobookPage() {
 
       const token = localStorage.getItem("access_token")
 
-      await axios.post("http://localhost:8000/api/v1/audiobooks/", formData, {
+      await axios.post(`${API_URL}/audiobooks/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,

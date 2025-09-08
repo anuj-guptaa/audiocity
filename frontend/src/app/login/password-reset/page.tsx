@@ -9,6 +9,7 @@ export default function PasswordResetPage() {
   const [email, setEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>('');
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handlePasswordReset = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +17,7 @@ export default function PasswordResetPage() {
     setSuccess('');
 
     try {
-      await axios.post('http://localhost:8000/api/v1/auth/password/reset/', { email });
+      await axios.post(`${API_URL}/auth/password/reset/`, { email });
       setSuccess('Password reset email sent! Please check your inbox.');
     } catch (error: any) {
       console.error('Password reset failed', error);

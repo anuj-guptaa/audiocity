@@ -30,6 +30,7 @@ export default function AudiobookPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(mockUser);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -43,7 +44,7 @@ export default function AudiobookPage() {
 
     const fetchBook = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/audiobooks/${id}/`, {
+        const response = await fetch(`${API_URL}/audiobooks/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

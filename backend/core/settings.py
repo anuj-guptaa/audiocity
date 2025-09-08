@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'sdasd'
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api.audiocity.aibrainlab.co', 'localhost',]
 
 
 # Application definition
@@ -119,6 +119,10 @@ REST_AUTH = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://shop.audiocity.aibrainlab.co",
+    "https://shop.audiocity.aibrainlab.co",
+    "http://api.audiocity.aibrainlab.co",
+    "https://api.audiocity.aibrainlab.co",
 ]
 
 # Print emails to the console during development via webmaster (for password reset)

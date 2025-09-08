@@ -8,6 +8,7 @@ export default function PasswordResetConfirmPage() {
   const params = useSearchParams();
   const uid = params.get('uid');
   const token = params.get('token');
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ export default function PasswordResetConfirmPage() {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:8000/api/v1/auth/password/reset/confirm/', {
+      await axios.post(`${API_URL}/auth/password/reset/confirm/`, {
         uid,
         token,
         new_password1: password,

@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [password2, setConfirmPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,7 +26,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const res = await axios.post(
-        'http://localhost:8000/api/v1/auth/registration/',
+        `${API_URL}/auth/registration/`,
         { email, password1, password2, username: email } // Use email as username
       );
 

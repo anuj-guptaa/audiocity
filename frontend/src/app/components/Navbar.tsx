@@ -15,6 +15,7 @@ export default function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
@@ -27,7 +28,7 @@ export default function Navbar() {
 
         const fetchUser = async () => {
             try {
-                const response = await axios.get<User>('http://localhost:8000/api/v1/users/me/', {
+                const response = await axios.get<User>(`${API_URL}/users/me/`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

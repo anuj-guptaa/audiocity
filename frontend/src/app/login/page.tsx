@@ -12,13 +12,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // console.log('API_URL:', API_URL);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
       const res = await axios.post<{ access: string; refresh: string }>(
-        'http://localhost:8000/api/v1/auth/login/',
+        `${API_URL}/auth/login/`,
         { email, password }
       );
 

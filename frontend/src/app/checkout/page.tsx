@@ -42,6 +42,7 @@ export default function CheckoutPage() {
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
   const [groupedDownloadLinks, setGroupedDownloadLinks] = useState<GroupedDownloadLink[]>([]);
   const [isZipping, setIsZipping] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -65,7 +66,7 @@ const handleCheckout = async () => {
   // Add a delay here
   setTimeout(async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/audiobooks/checkout/', {
+      const response = await fetch(`${API_URL}/audiobooks/checkout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
