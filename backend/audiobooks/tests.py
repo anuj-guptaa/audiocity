@@ -78,7 +78,7 @@ class AudiobookViewTests(TestCase):
         data = {
             "title": "Test Audiobook",
             "author": "Test Author",
-            # 'price' and 'cover_image' are missing
+            # 'price' and 'cover_image' are missing fields
         }
         response = self.admin_client.post(reverse("audiobook-list"), data, format="multipart")
 

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from datetime import datetime, timedelta
 
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+from azure.storage.blob import BlobServiceClient
 
 from .models import Audiobook, AudiobookFile
 from .serializers import AudiobookSerializer
@@ -76,7 +77,7 @@ class AudiobookViewSet(viewsets.ModelViewSet):
         return Response({"message": "Audiobook and all associated files deleted."}, status=status.HTTP_204_NO_CONTENT)
 
     def delete_blob(self, blob_name: str):
-        from azure.storage.blob import BlobServiceClient
+        
 
         if not AZURE_STORAGE_ACCOUNT_KEY or not AZURE_STORAGE_ACCOUNT_NAME:
             raise ValueError("Azure credentials are not set.")
@@ -97,8 +98,6 @@ class AudiobookCheckoutView(APIView):
     Handles the checkout process for audiobooks.
     Generates secure, time-limited download URLs for all audio and transcription files.
     """
-
-    # permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:

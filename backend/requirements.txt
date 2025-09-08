@@ -6,6 +6,7 @@ redis
 psycopg2-binary
 django-storages[azure]
 django-storages[google]
+requests
 
 # dj-rest-auth and django-allauth for auth
 dj-rest-auth[with_social]

@@ -22,10 +22,11 @@ from .views import GoogleLogin
 urlpatterns = [
     
     path('admin/', admin.site.urls),
-    path('api/v1/', include('audiobooks.urls')),
+    path('api/v1/', include('audiobooks.urls')), # include the audiobook app's URLs
     path('api/v1/auth/', include('dj_rest_auth.urls')), # For regular login (...login/), logout (...logout/) and password reset (...password/reset/)
     path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')), # For regular registration (...registration/)
     path('api/v1/auth/google/', GoogleLogin.as_view(), name='google_login'), # Google login
+    path('api/v1/users/', include('users.urls')), # include the user app's URLs
     path('auth/', include('django.contrib.auth.urls')),  # For reset password flow
 
 

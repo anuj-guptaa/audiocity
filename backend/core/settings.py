@@ -72,7 +72,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    # This will secure all your API views by default
+    # This will secure all your API views by default - no need to put in individually
     "DEFAULT_PERMISSION_CLASSES": [ 
         "rest_framework.permissions.IsAuthenticated"
     ]
@@ -164,7 +164,7 @@ LOGGING = {
     },
 }
 
-# Database
+# Database - local postgres container
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

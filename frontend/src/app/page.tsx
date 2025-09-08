@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from './components/Navbar';
 
-// Mock data for user roles
+// Mock data for user roles - not used anymore, but kept for reference
 const mockUser = {
   name: 'John Doe',
   email: 'john.doe@example.com',

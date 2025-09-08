@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 
-// Mock data for user roles
+// Mock data for user roles - not used anymore, but kept for reference, comes from Navbar
 const mockUser = {
   name: 'John Doe',
   email: 'john.doe@example.com',

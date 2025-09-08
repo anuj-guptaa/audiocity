@@ -41,7 +41,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager() # Add this line
+    objects = UserManager() # use custom manager for email-based auth
 
     def __str__(self):
         return self.email

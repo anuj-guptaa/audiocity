@@ -3,28 +3,50 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Mock data for user roles
-const mockUser = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'admin', // can be 'admin' or 'regular'
-};
+interface User {
+    email: string;
+    role: string;
+}
 
 export default function Navbar() {
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-    const [user, setUser] = useState(mockUser);
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
+
         if (!token) {
             setIsLoggedIn(false);
-        } else {
-            setIsLoggedIn(true);
+            setIsCheckingAuth(false);
+            return;
         }
-        setIsCheckingAuth(false);
+
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get<User>('http://localhost:8000/api/v1/users/me/', {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setUser(response.data);
+                setIsLoggedIn(true);
+            } catch (error) {
+                console.error('Failed to fetch user details:', error);
+                // If fetching user fails, assume token is invalid and log out
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                setIsLoggedIn(false);
+                // Redirecting to login is now handled by the middleware
+            } finally {
+                setIsCheckingAuth(false);
+            }
+        };
+
+        fetchUser();
     }, []);
 
     const handleLogout = () => {
@@ -44,7 +66,7 @@ export default function Navbar() {
                 </Link>
                 <nav>
                     <ul className="flex space-x-6">
-                        {isLoggedIn && user.role === 'admin' && (
+                        {isLoggedIn && user?.role === 'admin' && (
                             <li>
                                 <Link
                                     href="/admin/upload"
@@ -60,7 +82,7 @@ export default function Navbar() {
 
             {isLoggedIn ? (
                 <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-700">Welcome, {user.name}!</span>
+                    <span className="text-sm text-gray-700">Welcome, {user?.email}!</span>
                     <button
                         onClick={handleLogout}
                         className="text-sm font-semibold text-red-500 hover:text-red-700"
