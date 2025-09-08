@@ -25,7 +25,7 @@ This repository contains the full-stack application and infrastructure for a mod
 The application is a full-stack project comprised of several services orchestrated with Docker Compose.
 
 ## AudioCity Services:
-<img src="images/AudioCity_Services.png" alt="Services" width="600">
+<img src="images/AudioCity_Services.png" alt="Services" width="400">
 
   * **Frontend**:
 
@@ -47,7 +47,7 @@ The application is a full-stack project comprised of several services orchestrat
       * **`redis`**: Used as the message broker for Celery.
 
 ## AudioCity Architecture:
-<img src="images/AudioCity_Architecture.png" alt="Architecture" width="600">
+<img src="images/AudioCity_Architecture.png" alt="Architecture" width="300">
 
 -----
 
