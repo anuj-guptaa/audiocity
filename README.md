@@ -29,15 +29,15 @@ The application is a full-stack project comprised of several services orchestrat
 
   * **Frontend**:
 
-      * **Framework**: Next.js 15 with React 19.
-      * **Styling**: Tailwind CSS.
+      * **Framework**: Next.js 15 with React 19. Chosen due to it's server side rendering capabilities which allows for better search rankings due to pre-rendered pages.
+      * **Styling**: Tailwind CSS. For simplicity and quick time-to-prototype.
       * **Features**: Client-side cart management using `localStorage` and a ZIP download feature using `jszip` for bulk downloads.
 
   * **Backend**:
 
-      * **Framework**: Django and Django REST Framework.
-      * **Database**: PostgreSQL.
-      * **File Storage**: Azure Storage.
+      * **Framework**: Django and Django REST Framework. Python chosen due to ease of AI integration and Django chosen for its 'batteries-included' modules and quick set up and very strong community support. Also has out of the box support for auth, admin panel, RestAPI, ORM, and more.
+      * **Database**: PostgreSQL. Open source, free, lightweight, hugely supported.
+      * **File Storage**: Azure Storage. Chosen mostly because I already have access and a lot of experience with it. This can be migrated to other Clouds or even locally.
 
   * **Services**:
 
@@ -109,6 +109,8 @@ python manage.py createsuperuser
 
 The backend API will be available at `http://localhost:8000`, and the frontend at `http://localhost:3000`.
 
+To get Google Auth working, you need to set up Client ID and Client secret in the Google Cloud Console - https://developers.google.com/identity/protocols/oauth2. I show this feature working in my demo video.
+
 -----
 
 ### Testing
@@ -128,4 +130,9 @@ The application includes automated unit tests for the backend logic.
     python manage.py test users
     ```
 
+### Failure Handling and Robustness
+1. Audiobook file uploading:
+
+2. AI Service Failures
+   
 
