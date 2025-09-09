@@ -129,6 +129,7 @@ The application includes automated unit tests for the backend logic.
     # For users tests
     python manage.py test users
     ```
+*If all tests pass, you should see `Ran 16 tests in 4.485s OK`*
 
 ## Failure Handling and Robustness
 
